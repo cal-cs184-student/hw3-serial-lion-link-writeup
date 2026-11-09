@@ -260,11 +260,12 @@
 		<br>
 		m=0 shows only the light and m=1 adds direct lighting, leaving the ceiling and shadows black, similar to what we saw on the previous images. 
 		The 2nd bounce is dimmer and lights exactly the missing regions: the ceiling, the shadowed side of the bunny, and the shadows themselves. It also carries blue and brown reflections from the walls. 
-		The 3rd bounce is a faint version of the bunny, but you can't really distinguish the shadows. m=4 and m=5 are even more faint, almost evenly spread across the image. 
+		The 3rd bounce is a faint version of the bunny, but you can't really distinguish the shadows. m=4 and m=5 are even more faint, almost black. 
 		<br>
 		Compared to a rasterizer, which computes only the direct lighting and fakes the rest with ambient terms, the 2nd and 3rd bounces are the physically correct version of that ambient light. They soften the shadows, light surfaces facing away from the light, and add the color from other surfaces. These effects are what makes these images look realistic. A rasterizer cannot produce this. 
 		<br>
 		Compared to unaccumulated, accumulated renders sum the individual bounces. The jump from m = 1 to m = 2 is the largest and past m = 3 the image barely changes, so most of the global illumination effect comes from the first few bounces.
+		<br>
 
 		<br><div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
@@ -344,7 +345,7 @@
 			  </tr>
 			</table>
 		</div>
-
+		<br>
 		At 1 sample per pixel the image almost only noise. Noise drops steadily as the sample count increases, roughly decresing with square root of the number of samples. By 16–64 samples the scene is clear but still somewhat grainy in the shadows and on the ceiling. At 1024 samples it is smooth.
 
 		<br>
