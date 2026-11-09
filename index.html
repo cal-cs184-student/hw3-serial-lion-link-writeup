@@ -113,6 +113,7 @@
 		</div>
 		<br>
 		Comparison: At the same sample count, light sampling produces a much cleaner image than uniform hemisphere sampling. This happens because hemisphere sampling picks incoming directions without regard where the light is, so most rays miss the area light and contribute nothing. Only a few samples per pixel carry light, so the image is grainy, especially in soft shadows. Importance sampling aims at the light, so the same sampling gives a much smoother image since every sample contributes and variance drops significantly. Both methods should eventually give the same result, but light sampling gets there with far fewer samples. Additionally, light sampling also handles point lights, which hemisphere sampling cannot render, since a random direction has zero probability of hitting a single point.
+		<br>
 
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
@@ -147,9 +148,207 @@
 		<br>
 
 
-
 		<h2>Part 4: Global Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		Global illumination is computed recursively using the function at_least_one_bounce_radiance, which follows each light path backward from the camera, one bounce on each call. The camera rays start with depth max_ray_depth, and for each surface's emission, we use the est_radiance_global_illumination fucntion. 
+		At each hit point, we add the direct lighting from one_bounce_radiance. When isAccumBounces is false, we only add the last bounce, so the output isolates light that bounced exactly max_ray_depth times. Next, continue on a random direction, favoring directions close to the surface normal, and shoot a new ray that way with one less bounce remaining. If that ray hits something, call at_least_one_bounce_radiance again to find how much light comes back from there. We add that light, scaled by the surface's reflectance and the angle. 
+		With Russian roulette, each bounce continues with only a 65% chance. When it does continue, we divide by 0.65, so on average the result is the same.
+
+		<br>
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_gi.png" width="400px"/>
+				  <figcaption>Bunny with flobal illumination and 1024 samples per pixel.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/spheres_gi.png" width="400px"/>
+				  <figcaption>Spheres with flobal illumination and 1024 samples per pixel.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<br>
+		With global illumination, the ceiling is lit by bounding of the floor, and the shadows are softer. We can see the blue and the red color reflected onto the sides of the objects. 
+		<br>
+		
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_direct.png" width="400px"/>
+				  <figcaption>Bunny with only direct illumination.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_indirect.png" width="400px"/>
+				  <figcaption>Bunny with only indirect illumination.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		<br>
+		The scene with direct only illumination contains only light that travels from the area light to a surface and then to the camera. Surfaces facing the lihgt are brighly lit, but the ceiling and the shadows are completely black, which doesn't look realistic.
+		The indirect only illumation shows the opposite. It is dimmer overall, but those regions exactly are filled. Also, the red and blue walls tint the floor and the sides of the bunny. Adding the two together gives the full global illumination image, where indirect light softens shadows and adds the color bleeding that makes the scene look realistic.
+		<br>
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m0_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 0 (light only).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m0_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 0.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m1_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 1 (direct lighting).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m1_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 1.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m2_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 2 (2nd bounce only).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m2_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 2.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m3_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 3 (3rd bounce only).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m3_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 3.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m4_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 4 (4th bounce only).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m4_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 4.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m5_only.png" width="400px"/>
+				  <figcaption>Unaccumulated, m = 5 (5th bounce only).</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m5_accum.png" width="400px"/>
+				  <figcaption>Accumulated, m = 5.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		<br>
+		m=0 shows only the light and m=1 adds direct lighting, leaving the ceiling and shadows black, similar to what we saw on the previous images. 
+		The 2nd bounce is dimmer and lights exactly the missing regions: the ceiling, the shadowed side of the bunny, and the shadows themselves. It also carries blue and brown reflections from the walls. 
+		The 3rd bounce is a faint version of the bunny, but you can't really distinguish the shadows. m=4 and m=5 are even more faint, almost evenly spread across the image. 
+		<br>
+		Compared to a rasterizer, which computes only the direct lighting and fakes the rest with ambient terms, the 2nd and 3rd bounces are the physically correct version of that ambient light. They soften the shadows, light surfaces facing away from the light, and add the color from other surfaces. These effects are what makes these images look realistic. A rasterizer cannot produce this. 
+		<br>
+		Compared to unaccumulated, accumulated renders sum the individual bounces. The jump from m = 1 to m = 2 is the largest and past m = 3 the image barely changes, so most of the global illumination effect comes from the first few bounces.
+
+		<br><div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m0_accum.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 0.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m1_accum.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 1.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m2_accum.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 2.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m3_accum.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 3.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_m4_accum.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 4.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_rr_m100.png" width="400px"/>
+				  <figcaption>Russian roulette, m = 100.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		These last images show the effect of russian roulette rendering: After the fourth bounce most of the rays have not continued bouncing, so there is little difference between m=4 and m=100.
+
+		<br>
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s1.png" width="400px"/>
+				  <figcaption>1 sample per pixel, 4 light rays.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s2.png" width="400px"/>
+				  <figcaption>2 samples per pixel, 4 light rays.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s4.png" width="400px"/>
+				  <figcaption>4 samples per pixel, 4 light rays.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s8.png" width="400px"/>
+				  <figcaption>8 samples per pixel, 4 light rays.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s16.png" width="400px"/>
+				  <figcaption>16 samples per pixel, 4 light rays.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_s64.png" width="400px"/>
+				  <figcaption>64 samples per pixel, 4 light rays.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td colspan="2" style="text-align: center;">
+				  <img src="assets/bunny_s1024.png" width="400px"/>
+				  <figcaption>1024 samples per pixel, 4 light rays.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		At 1 sample per pixel the image almost only noise. Noise drops steadily as the sample count increases, roughly decresing with square root of the number of samples. By 16–64 samples the scene is clear but still somewhat grainy in the shadows and on the ceiling. At 1024 samples it is smooth.
+
+		<br>
+
 
 		<h2>Part 5: Adaptive Sampling</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -157,16 +356,7 @@
 		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 		
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+
 		</div>
 	</body>
 </html>
