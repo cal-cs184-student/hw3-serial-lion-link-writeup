@@ -45,7 +45,7 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		In this assignment we went over rendering with a pathtracing algorithm. We went over the basics first with ray generation, intersectionm, and bounding volume hierarchies; then we went into illumination and optimizations to speed up rendering. We were able to do a lot of the implementation using the lecture slides as a guide since the concepts in this homework closely aligned with those introduced in class. We had a bit of difficulty in catching all the cases to optimize the rendering in part 2, but were able to fix it in the end. 
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
 		For ray generation, we first convert the hFov and vFov variables to radians, then we convert to the image coordinates to sensor coordinates using the expressions given in the spec. We also need to make sure the previous origin at the bottom left is now the center in the camera space. Then we set the direction to point down the Z axis and transform from camera space to world space and normalize the ray. 
@@ -78,6 +78,31 @@
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
 		For the BVH construction, we first reuse the root bounding box construction from the starter code while also keeping track of the number of nodes we encounter. Then, we add the base case where we compare the number of nodes to the maximum count for leaves; for simplicity, we first chose the split point to be the average centroid along the x-axis. 
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny.png" width="400px"/>
+				  <figcaption>bunny.dae with BVH acceleration.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/CBspheres.png" width="400px"/>
+				  <figcaption>CBspheres.</figcaption>
+				</td>
+			  </tr>
+			  <!-- <tr>
+				<td style="text-align: center;">
+				  <img src="assets/cornell.png" width="400px"/>
+				  <figcaption>Caption goes here.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/cornell.png" width="400px"/>
+				  <figcaption>Caption goes here.</figcaption>
+				</td>
+			  </tr> -->
+			</table>
+		</div>
 
 		<h2>Part 3: Direct Illumination</h2>
 		We implemented two direct lighting functions. They estimate the reflection equation at a hit point by Monte Carlo sampling, which is L_out(p, ω_o), as an integral over incoming directions of f(ω_i -> ω_o) * L_i(p, ω_i) * cos θ_i. They differ in how directions are chosen.
@@ -352,10 +377,35 @@
 
 
 		<h2>Part 5: Adaptive Sampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		Adaptive sampling allocates more samples to complex or noisy parts of an image, and stops sampling earlier for more simple parts of the image. The modifications we made to raytracing from Part 1.2 were fairly minimal. We just added the illuminance summations during the for loop that we already had for non-adaptive sampling, then check at samplesPerBatch whether I is less than the max tolerance * mu. We calculate mu and sigma from the expressions given in the spec. We also keep track of the number of samples we used so that we can update the sampleCountBuffer at the end. 
 
-		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/blob.png" width="400px"/>
+				  <figcaption>blob.dae at 2048 samples/pixel, 1 sample/light, 5 max ray depth</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/blob_rate.png" width="400px"/>
+				  <figcaption>blob.dae sampling rate</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bench.png" width="400px"/>
+				  <figcaption>bench.dae at 2048 samples/pixel, 1 sample/light, 5 max ray depth</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bench_rate.png" width="400px"/>
+				  <figcaption>bench.dae sampling rate</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<!-- <h2>(Optional) Part 6: Extra Credit Opportunities</h2>
+		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. -->
 		
 
 		</div>
