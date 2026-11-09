@@ -80,7 +80,70 @@
 		For the BVH construction, we first reuse the root bounding box construction from the starter code while also keeping track of the number of nodes we encounter. Then, we add the base case where we compare the number of nodes to the maximum count for leaves; for simplicity, we first chose the split point to be the average centroid along the x-axis. 
 
 		<h2>Part 3: Direct Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		We implemented two direct lighting functions. They estimate the reflection equation at a hit point by Monte Carlo sampling, which is L_out(p, ω_o), as an integral over incoming directions of f(ω_i -> ω_o) * L_i(p, ω_i) * cos θ_i. They differ in how directions are chosen.
+		<br>
+		Uniform hemisphere sampling samples diections uniformly over the hemisphere and cast a ray from the hit point along each one. If the ray hits a source of light, it gets an emission. Everything else contributes nothing. Each sample adds f * L_i * cos θ / (1/2*pi), and we average over all samples. The result is noisy, since most rays miss the light, and it can only capture light areas, not points.
+		<br>
+		Importance sampling samples the lights directly, instead of the entire hemisphere. sample_L returns the direction of each sampled point, its distance, emitted radiance, and the sample's pdf. We skip samples where the light is behind the surface. For each remaining sample we cast a ray toward the light. If nothing blocks it, the light reaches the poitn and we add its contribution f * L_i * cosθ / pdf . Each light's contribution si the average of its samples. 
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_hemisphere.png" width="400px"/>
+				  <figcaption>Bunny with hemisphere sampling.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_importance.png" width="400px"/>
+				  <figcaption>Bunny with importance sampling.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/spheres_hemisphere.png" width="400px"/>
+				  <figcaption>Sphere with hemisphere sampling.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/spheres_importance.png" width="400px"/>
+				  <figcaption>Sphere with importance sampling.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		Comparison: At the same sample count, light sampling produces a much cleaner image than uniform hemisphere sampling. This happens because hemisphere sampling picks incoming directions without regard where the light is, so most rays miss the area light and contribute nothing. Only a few samples per pixel carry light, so the image is grainy, especially in soft shadows. Importance sampling aims at the light, so the same sampling gives a much smoother image since every sample contributes and variance drops significantly. Both methods should eventually give the same result, but light sampling gets there with far fewer samples. Additionally, light sampling also handles point lights, which hemisphere sampling cannot render, since a random direction has zero probability of hitting a single point.
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_l1.png" width="400px"/>
+				  <figcaption>Bunny with 1 light ray, and 1 sample per pixel.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/bunny_l4.png" width="400px"/>
+				  <figcaption>Bunny with 4 light rays, and 1 sample per pixel.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="assets/spheres_hemisphere.png" width="400px"/>
+				  <figcaption>Bunny with 16 light rays, and 1 sample per pixel.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="assets/spheres_importance.png" width="400px"/>
+				  <figcaption>Bunny with 64 light rays, and 1 sample per pixel.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		
+		With only one sample per pixel, the soft shadows depend entirely on how many shadow rays each pixel sends to the area light. At one light ray, the image is very noisy, and the soft shadow under the bunny is basically just random pixel noise. There is no visible shadow gradient.
+		Under four light rays, the walls and the floor look better, and the shadow begins to form a clearer dark region, but there is still no gradient on the soft shadow. At sixteen light rays, the shape and gradient of the shadow becomes more noticeable but still grainy. Finally, at 
+		sixty four light rays, the shadow is a smooth gradient. Noise falls significantly. 
+
+		<br>
+
+
 
 		<h2>Part 4: Global Illumination</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
