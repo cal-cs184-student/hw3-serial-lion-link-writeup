@@ -77,32 +77,35 @@
 		</div>
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
-		For the BVH construction, we first reuse the root bounding box construction from the starter code while also keeping track of the number of nodes we encounter. Then, we add the base case where we compare the number of nodes to the maximum count for leaves; for simplicity, we first chose the split point to be the average centroid along the x-axis. 
+		For the BVH construction, we first reuse the root bounding box construction from the starter code while also keeping track of the number of primitices we encounter. Then, we add the base case where we compare the number of primitives to the maximum count for leaves. 
+		Otherwise, we choose the split point to be the average centroid along the longest axis of the centroids' bounding box, and partition the primitives to the left and right children based on which side of this point their centroid falls on. We chose the longest axis because that is where the primitives are most spread out.
+		<br>
 
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="assets/bunny.png" width="400px"/>
+				  <img src="assets/bunny_normal.png" width="400px"/>
 				  <figcaption>bunny.dae with BVH acceleration.</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="assets/CBspheres.png" width="400px"/>
+				  <img src="assets/lucy.png" width="400px"/>
 				  <figcaption>CBspheres.</figcaption>
 				</td>
 			  </tr>
-			  <!-- <tr>
+			  <tr>
 				<td style="text-align: center;">
-				  <img src="assets/cornell.png" width="400px"/>
+				  <img src="assets/maxplanck.png" width="400px"/>
 				  <figcaption>Caption goes here.</figcaption>
 				</td>
-				<td style="text-align: center;">
-				  <img src="assets/cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr> -->
+			  </tr>
 			</table>
 		</div>
+
+		<br>
+		Without the BVH, every ray is tested against every primitive, so the cost per ray is huge for big scenes. The average number of intersection tests per ray went from about 510 on the teapot (2,464 primitives) to 1,080 on the cow (5,856 primitices) and 5,761 on the bunny (28,588 primitives). 
+		Speed falls also, from 0.20 million rays per second on the teapot to 0.013 on the bunny. With the BVH, speed stayed between about 1.5 and 6 million rays per second whatever the scene size. That's 26x faster on the teapot, 17x on the cow, and about 470x on the bunny.
+		<br>
 
 		<h2>Part 3: Direct Illumination</h2>
 		We implemented two direct lighting functions. They estimate the reflection equation at a hit point by Monte Carlo sampling, which is L_out(p, ω_o), as an integral over incoming directions of f(ω_i -> ω_o) * L_i(p, ω_i) * cos θ_i. They differ in how directions are chosen.
